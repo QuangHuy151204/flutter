@@ -20,16 +20,48 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  bool isGridView = false; // Chuyển đổi giữa ListView và GridView
+  bool isGridView = false;
   List<Product> products = [
-    Product(name: "Lốp xe", imageUrl: "https://www.bridgestone.com.vn/content/dam/bridgestone/consumer/bst/apac/vn/tyre-categories/alenza/ALENZA_001.jpg/_jcr_content/renditions/cq5dam.thumbnail.319.319.png", isFavorite: false),
-    Product(name: "Đèn pha", imageUrl: "https://nclighting.vn/wp-content/uploads/2019/12/%C4%90%C3%A8n-Pha-Led-Cao-%C3%81p-100W-PNC02-org.jpg", isFavorite: false),
-    Product(name: "Gương chiếu hậu", imageUrl: "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-m07mqv0c9v5958", isFavorite: false),
-    Product(name: "Cản trước", imageUrl: "https://static-cms-prod.vinfastauto.com/can-truoc-o-to-la-gi_16617849941.jpg", isFavorite: false),
-    Product(name: "Cản sau", imageUrl: "https://file.sedanviet.vn/Images/AutoPart/86610h7230/can-sau-1.jpg", isFavorite: false),
-    Product(name: "Bánh xe dự phòng", imageUrl: "https://dinhcam.com/cms/static/site/sale_dinhcam1/uploads/news/news.avatar.95dfacfbc1e21db4.6c6f702d64752d70686f6e672d312e6a7067.jpg", isFavorite: false),
-    Product(name: "Bình ắc quy", imageUrl: "https://acquychinhhang.vn/upload/sanpham/wp12-12nse-5822.jpg", isFavorite: false),
-    Product(name: "Má phanh", imageUrl: "https://cdn-prod-sg.yepgarage.info/upload/car-service-vn/file/66f67e890dd3a026b6e92ea3/cach-thay-ma-phanh-o-to.jpg", isFavorite: false),
+    Product(
+        name: "Lốp xe",
+        imageUrl:
+        "https://www.bridgestone.com.vn/content/dam/bridgestone/consumer/bst/apac/vn/tyre-categories/alenza/ALENZA_001.jpg/_jcr_content/renditions/cq5dam.thumbnail.319.319.png",
+        isFavorite: false),
+    Product(
+        name: "Đèn pha",
+        imageUrl:
+        "https://nclighting.vn/wp-content/uploads/2019/12/%C4%90%C3%A8n-Pha-Led-Cao-%C3%81p-100W-PNC02-org.jpg",
+        isFavorite: false),
+    Product(
+        name: "Gương chiếu hậu",
+        imageUrl:
+        "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-m07mqv0c9v5958",
+        isFavorite: false),
+    Product(
+        name: "Cản trước",
+        imageUrl:
+        "https://static-cms-prod.vinfastauto.com/can-truoc-o-to-la-gi_16617849941.jpg",
+        isFavorite: false),
+    Product(
+        name: "Cản sau",
+        imageUrl:
+        "https://file.sedanviet.vn/Images/AutoPart/86610h7230/can-sau-1.jpg",
+        isFavorite: false),
+    Product(
+        name: "Bánh xe dự phòng",
+        imageUrl:
+        "https://www.bridgestone.com.vn/content/dam/bridgestone/consumer/bst/apac/kr/Tires/Turanza/T005A/New%20Website%20-%20Tyre%20images%20-%202000x2000px-38.jpg",
+        isFavorite: false),
+    Product(
+        name: "Bình ắc quy",
+        imageUrl:
+        "https://acquychinhhang.vn/upload/sanpham/wp12-12nse-5822.jpg",
+        isFavorite: false),
+    Product(
+        name: "Má phanh",
+        imageUrl:
+        "https://cdn-prod-sg.yepgarage.info/upload/car-service-vn/file/66f67e890dd3a026b6e92ea3/cach-thay-ma-phanh-o-to.jpg",
+        isFavorite: false),
   ];
 
   @override
@@ -81,36 +113,85 @@ class _ProductScreenState extends State<ProductScreen> {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Column(
+      child: isGrid
+          ? Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.network(product.imageUrl, width: 100, height: 100, fit: BoxFit.cover),
-          SizedBox(height: 8),
-          Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
-          Text("20,000 VNĐ", style: TextStyle(color: Colors.red, fontSize: 16)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Stack(
             children: [
-              IconButton(
-                icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
-                color: product.isFavorite ? Colors.red : Colors.grey,
-                onPressed: () {
-                  setState(() {
-                    product.isFavorite = !product.isFavorite;
-                  });
+              Image.network(
+                product.imageUrl,
+                width: 200,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(Icons.broken_image, size: 80, color: Colors.grey);
                 },
               ),
-              ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text("${product.name} đã được thêm vào giỏ hàng!"),
-                  ));
-                },
-                child: Text("Mua hàng"),
+              Positioned(
+                top: 5,
+                right: 5,
+                child: IconButton(
+                  icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
+                  color: product.isFavorite ? Colors.red : Colors.grey,
+                  onPressed: () {
+                    setState(() {
+                      product.isFavorite = !product.isFavorite;
+                    });
+                  },
+                ),
               ),
             ],
           ),
+          SizedBox(height: 8),
+          Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text("20,000 VNĐ", style: TextStyle(color: Colors.red, fontSize: 16)),
+          ElevatedButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("${product.name} đã được thêm vào giỏ hàng!"),
+              ));
+            },
+            child: Text("Mua hàng"),
+          ),
         ],
+      )
+          : ListTile(
+        leading: Image.network(
+          product.imageUrl,
+          width: 80,
+          height: 80,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(Icons.broken_image, size: 50, color: Colors.grey);
+          },
+        ),
+        title: Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text("20,000 VNĐ", style: TextStyle(color: Colors.red, fontSize: 16)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
+              color: product.isFavorite ? Colors.red : Colors.grey,
+              onPressed: () {
+                setState(() {
+                  product.isFavorite = !product.isFavorite;
+                });
+              },
+            ),
+            SizedBox(width: 5),
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("${product.name} đã được thêm vào giỏ hàng!"),
+                ));
+              },
+              child: Text("Mua"),
+              style: ElevatedButton.styleFrom(minimumSize: Size(60, 30)),
+            ),
+          ],
+        ),
       ),
     );
   }
