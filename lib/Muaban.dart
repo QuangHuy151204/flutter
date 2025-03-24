@@ -50,7 +50,7 @@ class _ProductScreenState extends State<ProductScreen> {
     Product(
         name: "Bánh xe dự phòng",
         imageUrl:
-        "https://www.bridgestone.com.vn/content/dam/bridgestone/consumer/bst/apac/kr/Tires/Turanza/T005A/New%20Website%20-%20Tyre%20images%20-%202000x2000px-38.jpg",
+        "https://dinhcam.com/cms/static/site/sale_dinhcam1/uploads/news/news.avatar.95dfacfbc1e21db4.6c6c702d64752d70686f6e672d312e6a7067.jpg",
         isFavorite: false),
     Product(
         name: "Bình ắc quy",
