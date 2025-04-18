@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'laptop.dart';
 
 void main(){
@@ -11,10 +12,34 @@ class MyApp extends StatelessWidget{
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: HomeScreen(),
+=======
+import 'package:get/get.dart';
+import 'form_getx_screen.dart';
+
+
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const MyHomePage(title: 'Flutter Learn'),
+>>>>>>> 510f198 (HW)
     );
   }
 }
 
+<<<<<<< HEAD
 class HomeScreen extends StatefulWidget{
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -244,6 +269,72 @@ class _HomeScreenState extends State<HomeScreen>{
             ),
           ),
         ],
+=======
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Card(
+              child: ListTile(
+                title: Text("Bài tập todo"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      // Thay bằng class ToDoListPage của bạn
+                      builder: (context) => Placeholder(fallbackHeight: 400),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                title: Text("Bài tập 7"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      // Sử dụng class FormGetXScreen từ file form_getx_screen.dart
+                      builder: (context) => FormGetXScreen(),
+                    ),
+                  );
+                },
+              ),
+            )
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+>>>>>>> 510f198 (HW)
       ),
     );
   }

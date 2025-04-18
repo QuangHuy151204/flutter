@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # helloworld
+=======
+# counter
+>>>>>>> 510f198 (HW)
 
 A new Flutter project.
 
