@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:get/get.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter API Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -22,118 +23,220 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
-
-  @override
-  HomePageState createState() => HomePageState();
-}
-
-class HomePageState extends State<HomePage> {
+// Controllers
+class PostController extends GetxController {
   final String baseUrl = 'https://jsonplaceholder.typicode.com';
-  List<dynamic> _posts = [];
-  bool _isLoading = true;
-  bool _isGridView = false;
+  var posts = <dynamic>[].obs;
+  var isLoading = true.obs;
+  var isGridView = false.obs;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchPosts();
+  void onInit() {
+    super.onInit();
+    fetchPosts();
   }
 
-  Future<void> _fetchPosts() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> fetchPosts() async {
+    isLoading(true);
+    update();
 
     try {
       final response = await http.get(Uri.parse('$baseUrl/posts'));
 
       if (response.statusCode == 200) {
-        setState(() {
-          _posts = json.decode(response.body);
-          _isLoading = false;
-        });
+        posts.value = json.decode(response.body);
+        isLoading(false);
+        update();
       } else {
-        _showErrorSnackBar('Lỗi khi tải dữ liệu: ${response.statusCode}');
-        setState(() {
-          _isLoading = false;
-        });
+        Get.snackbar(
+          'Error',
+          'Lỗi khi tải dữ liệu: ${response.statusCode}',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        isLoading(false);
+        update();
       }
     } catch (e) {
-      _showErrorSnackBar('Lỗi kết nối: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      Get.snackbar(
+        'Error',
+        'Lỗi kết nối: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      isLoading(false);
+      update();
     }
   }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  void toggleView() {
+    isGridView.value = !isGridView.value;
+    update();
+  }
+}
+
+class DetailController extends GetxController {
+  final String baseUrl;
+  final dynamic post;
+  var comments = <dynamic>[].obs;
+  var isLoadingComments = true.obs;
+
+  DetailController({required this.baseUrl, required this.post});
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchComments();
   }
 
-  void _navigateToDetail(dynamic post) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailPage(post: post, baseUrl: baseUrl),
-      ),
-    );
-  }
+  Future<void> fetchComments() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/${post['id']}/comments'),
+      );
 
-  void _navigateToAddPost() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddPostPage(baseUrl: baseUrl),
-      ),
-    ).then((value) {
-      if (value == true) {
-        _fetchPosts();
+      if (response.statusCode == 200) {
+        comments.value = json.decode(response.body);
+        isLoadingComments(false);
+        update();
+      } else {
+        Get.snackbar(
+          'Error',
+          'Lỗi khi tải bình luận: ${response.statusCode}',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        isLoadingComments(false);
+        update();
       }
-    });
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Lỗi kết nối: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      isLoadingComments(false);
+      update();
+    }
+  }
+}
+
+class AddPostController extends GetxController {
+  final String baseUrl;
+  var isSubmitting = false.obs;
+  final titleController = TextEditingController();
+  final bodyController = TextEditingController();
+  final int userId = 1;
+
+  AddPostController({required this.baseUrl});
+
+  Future<bool> submitPost() async {
+    isSubmitting(true);
+    update();
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts'),
+        body: jsonEncode({
+          'title': titleController.text,
+          'body': bodyController.text,
+          'userId': userId,
+        }),
+        headers: {'Content-type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 201) {
+        Get.snackbar(
+          'Success',
+          'Bài viết đã được tạo thành công',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        isSubmitting(false);
+        update();
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'Lỗi: ${response.statusCode}',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        isSubmitting(false);
+        update();
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Lỗi kết nối: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      isSubmitting(false);
+      update();
+      return false;
+    }
   }
 
   @override
+  void onClose() {
+    titleController.dispose();
+    bodyController.dispose();
+    super.onClose();
+  }
+}
+
+
+class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
   Widget build(BuildContext context) {
+
+    final PostController postController = Get.put(PostController(), permanent: true);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Danh sách API'),
         actions: [
-          IconButton(
-            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () {
-              setState(() {
-                _isGridView = !_isGridView;
-              });
-            },
+          GetBuilder<PostController>(
+            builder: (controller) => IconButton(
+              icon: Icon(controller.isGridView.value
+                  ? Icons.view_list
+                  : Icons.grid_view),
+              onPressed: controller.toggleView,
+            ),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _isGridView
-          ? _buildGridView()
-          : _buildListView(),
+      body: GetBuilder<PostController>(
+        builder: (controller) {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (controller.isGridView.value) {
+            return _buildGridView(controller);
+          } else {
+            return _buildListView(controller);
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddPost,
+        onPressed: () {
+
+          _navigateToAddPost(postController);
+        },
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildListView() {
+  Widget _buildListView(PostController controller) {
     return RefreshIndicator(
-      onRefresh: _fetchPosts,
+      onRefresh: controller.fetchPosts,
       child: ListView.builder(
-        itemCount: _posts.length,
+        itemCount: controller.posts.length,
         itemBuilder: (context, index) {
-          final post = _posts[index];
+          final post = controller.posts[index];
           return PostView(
             post: post,
-            onTap: () => _navigateToDetail(post),
+            onTap: () => _navigateToDetail(post, controller.baseUrl),
             isGridView: false,
           );
         },
@@ -141,9 +244,9 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildGridView() {
+  Widget _buildGridView(PostController controller) {
     return RefreshIndicator(
-      onRefresh: _fetchPosts,
+      onRefresh: controller.fetchPosts,
       child: GridView.builder(
         padding: const EdgeInsets.all(10),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -152,21 +255,34 @@ class HomePageState extends State<HomePage> {
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
         ),
-        itemCount: _posts.length,
+        itemCount: controller.posts.length,
         itemBuilder: (context, index) {
-          final post = _posts[index];
+          final post = controller.posts[index];
           return PostView(
             post: post,
-            onTap: () => _navigateToDetail(post),
+            onTap: () => _navigateToDetail(post, controller.baseUrl),
             isGridView: true,
           );
         },
       ),
     );
   }
+
+  void _navigateToDetail(dynamic post, String baseUrl) {
+    Get.to(() => DetailPage(post: post, baseUrl: baseUrl));
+  }
+
+  void _navigateToAddPost(PostController controller) {
+
+    Get.to(() => AddPostPage(baseUrl: controller.baseUrl))?.then((result) {
+      if (result == true) {
+
+        controller.fetchPosts();
+      }
+    });
+  }
 }
 
-// Widget PostView được tạo mới
 class PostView extends StatelessWidget {
   final dynamic post;
   final VoidCallback onTap;
@@ -248,62 +364,21 @@ class PostView extends StatelessWidget {
   }
 }
 
-class DetailPage extends StatefulWidget {
+class DetailPage extends StatelessWidget {
   final dynamic post;
   final String baseUrl;
 
-  const DetailPage({Key? key, required this.post, required this.baseUrl}) : super(key: key);
-
-  @override
-  DetailPageState createState() => DetailPageState();
-}
-
-class DetailPageState extends State<DetailPage> {
-  List<dynamic> _comments = [];
-  bool _isLoadingComments = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchComments();
-  }
-
-  Future<void> _fetchComments() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${widget.baseUrl}/posts/${widget.post['id']}/comments'),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _comments = json.decode(response.body);
-          _isLoadingComments = false;
-        });
-      } else {
-        _showErrorSnackBar('Lỗi khi tải bình luận: ${response.statusCode}');
-        setState(() {
-          _isLoadingComments = false;
-        });
-      }
-    } catch (e) {
-      _showErrorSnackBar('Lỗi kết nối: $e');
-      setState(() {
-        _isLoadingComments = false;
-      });
-    }
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
+  const DetailPage({Key? key, required this.post, required this.baseUrl})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
+    final controller = Get.put(DetailController(baseUrl: baseUrl, post: post));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chi tiết bài viết số ${widget.post['id']}'),
+        title: Text('Chi tiết bài viết số ${post['id']}'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -319,19 +394,19 @@ class DetailPageState extends State<DetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.post['title'],
+                      post['title'],
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Tác giả: Unknow',
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
-                    Text(widget.post['body']),
+                    Text(post['body']),
                   ],
                 ),
               ),
@@ -346,49 +421,56 @@ class DetailPageState extends State<DetailPage> {
             ),
             const SizedBox(height: 8),
 
-            _isLoadingComments
-                ? const Center(child: CircularProgressIndicator())
-                : _comments.isEmpty
-                ? const Center(child: Text('No comment yet'))
-                : ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _comments.length,
-              itemBuilder: (context, index) {
-                final comment = _comments[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.person, size: 16),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                comment['name'],
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+            GetBuilder<DetailController>(
+              builder: (controller) {
+                if (controller.isLoadingComments.value) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (controller.comments.isEmpty) {
+                  return const Center(child: Text('No comment yet'));
+                } else {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: controller.comments.length,
+                    itemBuilder: (context, index) {
+                      final comment = controller.comments[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.person, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      comment['name'],
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.email, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text(comment['email']),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(comment['body']),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.email, size: 16),
-                            const SizedBox(width: 8),
-                            Text(comment['email']),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(comment['body']),
-                      ],
-                    ),
-                  ),
-                );
+                      );
+                    },
+                  );
+                }
               },
             ),
           ],
@@ -398,74 +480,17 @@ class DetailPageState extends State<DetailPage> {
   }
 }
 
-class AddPostPage extends StatefulWidget {
+class AddPostPage extends StatelessWidget {
   final String baseUrl;
 
   const AddPostPage({Key? key, required this.baseUrl}) : super(key: key);
 
   @override
-  AddPostPageState createState() => AddPostPageState();
-}
-
-class AddPostPageState extends State<AddPostPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _bodyController = TextEditingController();
-  final int _userId = 1;
-  bool _isSubmitting = false;
-
-  Future<void> _submitPost() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      final response = await http.post(
-        Uri.parse('${widget.baseUrl}/posts'),
-        body: jsonEncode({
-          'title': _titleController.text,
-          'body': _bodyController.text,
-          'userId': _userId,
-        }),
-        headers: {'Content-type': 'application/json; charset=UTF-8'},
-      );
-
-      if (context.mounted) {
-        if (response.statusCode == 201) {
-
-          final createdPost = json.decode(response.body);
-
-
-
-          Navigator.pop(context, true);
-        } else {
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi: ${response.statusCode}')),
-          );
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi kết nối: $e')),
-        );
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+
+    final controller = Get.put(AddPostController(baseUrl: baseUrl));
+    final formKey = GlobalKey<FormState>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thêm bài viết mới'),
@@ -473,12 +498,12 @@ class AddPostPageState extends State<AddPostPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
-                controller: _titleController,
+                controller: controller.titleController,
                 decoration: const InputDecoration(
                   labelText: 'Tiêu đề',
                   border: OutlineInputBorder(),
@@ -492,7 +517,7 @@ class AddPostPageState extends State<AddPostPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _bodyController,
+                controller: controller.bodyController,
                 decoration: const InputDecoration(
                   labelText: 'Nội dung',
                   border: OutlineInputBorder(),
@@ -507,16 +532,28 @@ class AddPostPageState extends State<AddPostPage> {
                 },
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitPost,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isSubmitting
-                    ? const CircularProgressIndicator()
-                    : const Text(
-                  'Đăng bài viết',
-                  style: TextStyle(fontSize: 16),
+              GetBuilder<AddPostController>(
+                builder: (controller) => ElevatedButton(
+                  onPressed: controller.isSubmitting.value
+                      ? null
+                      : () async {
+                    if (formKey.currentState!.validate()) {
+                      final success = await controller.submitPost();
+                      if (success) {
+
+                        Get.back(result: true);
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: controller.isSubmitting.value
+                      ? const CircularProgressIndicator()
+                      : const Text(
+                    'Đăng bài viết',
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ],
@@ -524,12 +561,5 @@ class AddPostPageState extends State<AddPostPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _bodyController.dispose();
-    super.dispose();
   }
 }
