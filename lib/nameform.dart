@@ -81,7 +81,7 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lưu và Hiển thị Tên Người Dùng'),
+        title: const Text('SharedPreferences HW'),
         centerTitle: true,
       ),
       body: Padding(
@@ -126,7 +126,7 @@ class HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Nhập tên mới:',
+                    'New User:',
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold
@@ -138,7 +138,7 @@ class HomePageState extends State<HomePage> {
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
-                      hintText: 'Nhập tên của bạn',
+                      hintText: 'Please enter your name',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.person),
                     ),
@@ -163,7 +163,7 @@ class HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: const Text(
-                      'Lưu tên',
+                      'Save',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -188,7 +188,7 @@ class HomePageState extends State<HomePage> {
                   }
                 },
                 icon: const Icon(Icons.delete),
-                label: const Text('Xóa tên'),
+                label: const Text('Delete'),
               ),
             ],
           ],
