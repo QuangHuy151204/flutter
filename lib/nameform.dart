@@ -97,7 +97,7 @@ class HomePageState extends State<HomePage> {
                 child: Column(
                   children: [
                     const Text(
-                      'Tên người dùng hiện tại:',
+                      'Current Username:',
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold
@@ -206,11 +206,3 @@ class HomePageState extends State<HomePage> {
 }
 
 
-//Cách hoạt động của ứng dụng:
-//
-// Khi khởi động, ứng dụng sẽ kiểm tra xem đã có tên người dùng được lưu trong SharedPreferences chưa
-// Nếu có, tên sẽ được hiển thị ở phần "Tên người dùng hiện tại"
-// Người dùng có thể nhập tên mới vào form và nhấn "Lưu tên"
-// Sau khi lưu, tên mới sẽ được hiển thị và một thông báo "Tên đã được lưu thành công" sẽ xuất hiện
-// Khi tắt ứng dụng và mở lại, tên đã lưu sẽ vẫn được hiển thị
-// Nút "Xóa tên" sẽ xuất hiện nếu đã có tên được lưu, cho phép xóa tên hiện tại
